@@ -1,0 +1,9 @@
+.inline-input {
+    & {
+        border-radius: 0;
+        border: none;
+        width: auto;
+        border-bottom: 1px solid black;
+        outline: none;
+    }
+}

@@ -1,0 +1,8 @@
+.env
+.nrepl-port
+.calva
+.cpcache
+.clj-kondo
+.lsp
+data
+resources/public/css/global*
