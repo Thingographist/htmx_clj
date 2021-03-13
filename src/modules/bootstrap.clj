@@ -10,6 +10,7 @@
               (string/join " "))]
     [:nav.navbar.navbar-dark.bg-primary.navbar-expand
      [:div.container-fluid {:class cls}
-      [:ul.navbar-nav.nav
+      (into
+       [:ul.navbar-nav.nav]
        (for [item items]
-         [:li.nav-item item])]]]))
+         [:li.nav-item item]))]]))
