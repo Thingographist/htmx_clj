@@ -1,5 +1,6 @@
 (ns modules.routes
   (:require [clojure.string :as string]
+            [cheshire.core :as json]
             [htmx]
             [modules.bootstrap :as bt]))
 
@@ -15,7 +16,7 @@
                  [:a.nav-link
                   (cond-> {:hx-get      (->href p)
                            :hx-push-url "true"
-                           :hx-target   "body"
+                           :hx-target   "main"
                            :style       {:cursor "default"}}
                     (= curren-page-key page-key)
                     (assoc :class "active"))
@@ -59,6 +60,14 @@
           [:h1 "infonify"]]]]]]]
     {:title "HTMX KIT INFO"}))
 
+(defn plotly [traces & [layout]]
+  (let [id (gensym (str "plotly-" (rand-int 1000) "-"))
+        traces-json (json/generate-string traces)
+        layout-json (json/generate-string layout)]
+    [:div
+     [:div {:id      id
+            :hx-load (str "Plotly.newPlot('" id "', " traces-json (when layout  (str ", " layout-json)) " );")}]]))
+
 (defmethod page :page42 [{{id :id} :params}]
   (with-meta
     [:div
@@ -69,8 +78,26 @@
         [:div.card
          [:div.card-header (str "Страница " id)]
          [:div.card-body
-          [:h1 "ответ на всякое"]]]]]]]
-    {:title (str "HTMX KIT PAGE42")}))
+          [:h1 "ответ на всякое"]]]]
+       [:div.col
+        [:div.card
+         [:div.card-header "Пример графика"]
+         [:div.card-body
+          [:div.row.my-1
+           [:div.col
+            [:button#refresh.btn "refresh"]]]
+          [:div.row
+           [:div.col {:hx-get     "/api/chart"
+                      :hx-swap    "innerHTML"
+                      :hx-trigger "click from:button#refresh"}
+            (plotly [{:x [1, 2, 3, 4, 5]
+                      :y (repeatedly 5 #(inc (rand-int 10)))}]
+                    {:margin {:t 25
+                              :b 25
+                              :l 25
+                              :r 25}})]]]]]]]]
+    {:title (str "HTMX KIT PAGE42")
+     :js    ["/js/plotly-latest.min.js"]}))
 
 (def pages
   [{:href     "/"
@@ -90,5 +117,13 @@
             (update href 0 subs 1))
           (htmx/htmx-response 
            (fn [r]  (page (assoc r :page p))))])]
-   ["api/user" (fn [r] (htmx/hiccup-response [:b (-> r :params :username)]))]
+   ["api/" [["user" (fn [r] (htmx/hiccup-response [:b (-> r :params :username)]))]
+            ["chart" (fn [r]
+                       (-> (plotly [{:x [1, 2, 3, 4, 5]
+                                     :y (repeatedly 5 #(inc (rand-int 10)))}]
+                                   {:margin {:t 25
+                                             :b 25
+                                             :l 25
+                                             :r 25}})
+                           (htmx/hiccup-response {:eval-after-load? true})))]]]
    ["ws/user" (fn [r] (htmx/hiccup-response [:b (-> r :params :username)]))]])
