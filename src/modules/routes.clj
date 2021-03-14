@@ -60,13 +60,18 @@
           [:h1 "infonify"]]]]]]]
     {:title "HTMX KIT INFO"}))
 
-(defn plotly [traces & [layout]]
+(defn plotly [traces & [layout opts]]
   (let [id (gensym (str "plotly-" (rand-int 1000) "-"))
         traces-json (json/generate-string traces)
-        layout-json (json/generate-string layout)]
+        layout-json (json/generate-string
+                     (or layout {}))
+        opts-json (json/generate-string
+                   (or opts {:displayModeBar false
+                             :scrollZoom     false
+                             :dragMode       false}))]
     [:div
      [:div {:id      id
-            :hx-load (str "Plotly.newPlot('" id "', " traces-json (when layout  (str ", " layout-json)) " );")}]]))
+            :hx-load (str "Plotly.newPlot('" id "', " traces-json ", " layout-json ", " opts-json ");")}]]))
 
 (defmethod page :page42 [{{id :id} :params}]
   (with-meta
@@ -92,7 +97,9 @@
                       :hx-trigger "click from:button#refresh"}
             (plotly [{:x [1, 2, 3, 4, 5]
                       :y (repeatedly 5 #(inc (rand-int 10)))}]
-                    {:margin {:t 25
+                    {:xaxis  {:fixedrange true}
+                     :yaxis  {:fixedrange true}
+                     :margin {:t 25
                               :b 25
                               :l 25
                               :r 25}})]]]]]]]]
@@ -121,7 +128,9 @@
             ["chart" (fn [r]
                        (-> (plotly [{:x [1, 2, 3, 4, 5]
                                      :y (repeatedly 5 #(inc (rand-int 10)))}]
-                                   {:margin {:t 25
+                                   {:xaxis  {:fixedrange true}
+                                    :yaxis  {:fixedrange true}
+                                    :margin {:t 25
                                              :b 25
                                              :l 25
                                              :r 25}})
