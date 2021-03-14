@@ -4,12 +4,13 @@
             [honeysql.core :as sql]
             [migratus.core :as migratus]
 
-            [system.env :refer [env]])
+            [system.env :refer [env]]
+            [mquery])
   (:import (com.mchange.v2.c3p0 ComboPooledDataSource)))
 
 (defn connection-pool
   "Create a c3p0 connection pool for the given database SPEC."
-  [{:keys [connection-uri classname], :as spec}]
+  [{:keys [connection-uri classname]}]
   {:datasource (doto (ComboPooledDataSource.)
                  (.setDriverClass classname)
                  (.setJdbcUrl connection-uri)
@@ -57,3 +58,17 @@
 
 (defn migrate []
   (migratus/migrate (migration-config)))
+
+(defstate db-info :start (mquery/db-info db))
+
+(defn mquery [q]
+  (let [refs (mapcat :references db-info)]
+    (mquery/exec q refs query)))
+
+(comment
+
+  (let [mq {:migration_vers {:$fields [:id :applied]}}]
+    (mquery mq))
+
+  ;;
+  )
