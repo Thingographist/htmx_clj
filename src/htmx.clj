@@ -2,7 +2,8 @@
   (:require [ring.util.response :as res]
             [cheshire.core :as json]
             [hiccup.page :refer [html5]]
-            [hiccup.core :refer [html]]))
+            [hiccup.core :refer [html]]
+            [system.env :refer [env]]))
 
 (defn htmx-trigger [response trigger]
   (->> (cond-> trigger
@@ -14,6 +15,12 @@
   (cond-> (res/response (html content))
     (:eval-after-load? opts)
     (htmx/htmx-trigger "hx-eval-after-load")))
+
+(defn- static-with-version [path]
+  (let [version (env :STATIC_VERSION)]
+    (cond->  path
+      (some? version)
+      (str "?_v=" version))))
 
 (defn- page [content]
   (let [{:keys [title js css]} (meta content)]
@@ -28,18 +35,19 @@
           :content "width=device-width, initial-scale=1"}]
         [:meta {:http-equiv "X-UA-Compatible", :content "ie=edge"}]
         [:title#hx-page-title (or title "HTMX MAIN")]
-        [:link {:rel "stylesheet", :href "/css/mdb.min.css"}]
-        [:link {:rel "stylesheet", :href "/css/global.css"}]
-        [:script {:src "/js/htmx.events.js"}]]
+        [:link {:rel "stylesheet", :href (static-with-version "/css/mdb.min.css")}]
+        [:link {:rel "stylesheet", :href (static-with-version "/css/global.css")}]
+        [:script {:src (static-with-version "/js/htmx.events.js")}]]
        (concat
         (for [path css]
-          [:link {:rel "stylesheet", :href path}])
+          [:link {:rel  "stylesheet"
+                  :href (static-with-version path)}])
         (for [path js]
-          [:script {:src path}])))
+          [:script {:src (static-with-version path)}])))
       [:body.bg-white
        [:main content]
-       [:script {:src "/js/mdb.min.js"}]
-       [:script {:src "/js/htmx.min.js"}]]))))
+       [:script {:src (static-with-version "/js/mdb.min.js")}]
+       [:script {:src (static-with-version "/js/htmx.min.js")}]]))))
 
 (defn- body [content]
   (let [{:keys [title js css]} (meta content)
@@ -48,8 +56,8 @@
                        (str (html [:title#hx-page-title {:hx-swap-oob "true"} title])))]
     (htmx-trigger
      (res/response full-content)
-     {:hx-add-resources {:js  js
-                         :css css}})))
+     {:hx-add-resources {:js  (map static-with-version js)
+                         :css (map static-with-version css)}})))
 
 (defn htmx-response [handler]
   (let [->page-response (comp page handler)

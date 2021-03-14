@@ -33,6 +33,7 @@
 
 ```
 WEB_PORT=4080
+STATIC_VERSION=1.1.1
 MYSQL=jdbc:mysql://localhost:3332/my_db?user=root&password=example&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
 ```
 
