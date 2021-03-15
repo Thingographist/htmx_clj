@@ -22,10 +22,9 @@ window.addEventListener('load', () => {
     document.body.addEventListener("hx-add-resources", (evt) => {
         let { css, js } = evt.detail;
         // add css
-        if (css) {
-            let new_css = css
-                .filter((x) => HTMX_RESOURCES.css_arr.indexOf(x) == -1);
-                HTMX_RESOURCES.css_arr.push(...new_css);
+        let new_css = (css || []).filter((x) => HTMX_RESOURCES.css_arr.indexOf(x) == -1);
+        if (new_css.length > 0) {
+            HTMX_RESOURCES.css_arr.push(...new_css);
             new_css.forEach((x) => {
                 let l = document.createElement('link');
                 l.setAttribute('href', x);
