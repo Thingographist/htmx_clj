@@ -41,14 +41,15 @@
        (concat
         (for [path css]
           [:link {:rel  "stylesheet"
-                  :href (static-with-version path)}])
-        (for [path js]
-          [:script {:src (static-with-version path)}])))
-      [:body.bg-white
-       [:main content]
-       [:script {:src (static-with-version "/js/mdb.min.js")}]
-       [:script {:src (static-with-version "/js/htmx.min.js")}]
-       [:script {:src (static-with-version "/js/hyperscript.min.js")}]]))))
+                  :href (static-with-version path)}])))
+      (into
+       [:body.bg-white
+        [:main content]
+        [:script {:src (static-with-version "/js/mdb.min.js")}]
+        [:script {:src (static-with-version "/js/htmx.min.js")}]
+        [:script {:src (static-with-version "/js/hyperscript.min.js")}]]
+       (for [path js]
+         [:script {:src (static-with-version path)}]))))))
 
 (defn- body [content]
   (let [{:keys [title js css]} (meta content)
