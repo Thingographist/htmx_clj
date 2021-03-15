@@ -1,4 +1,4 @@
-(ns htmx
+(ns modules.htmx
   (:require [ring.util.response :as res]
             [cheshire.core :as json]
             [hiccup.page :refer [html5]]
@@ -14,7 +14,7 @@
 (defn hiccup-response [content & [opts]]
   (cond-> (res/response (html content))
     (:eval-after-load? opts)
-    (htmx/htmx-trigger "hx-eval-after-load")))
+    (htmx-trigger "hx-eval-after-load")))
 
 (defn- static-with-version [path]
   (let [version (env :STATIC_VERSION)]

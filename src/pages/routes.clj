@@ -1,8 +1,8 @@
-(ns modules.routes
+(ns pages.routes
   (:require [clojure.string :as string]
             [cheshire.core :as json]
-            [htmx]
-            [modules.bootstrap :as bt]))
+            [modules.htmx :as htmx]
+            [pages.bootstrap :as bt]))
 
 (declare pages)
 

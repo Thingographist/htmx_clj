@@ -14,8 +14,8 @@
             [system.env :refer [env]]
             [system.session-store :refer [session-store]]
 
-            [htmx]
-            [modules.routes :refer [routes]]))
+            [modules.htmx :as htmx]
+            [pages.routes :refer [routes]]))
 
 (def main-routes
   (let [session #(wrap-session % {:cookie-name "wizard-session"

@@ -1,4 +1,4 @@
-(ns modules.bootstrap
+(ns pages.bootstrap
   (:require [clojure.string :as string]))
 
 (defn menu [opts & items]

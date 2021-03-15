@@ -5,7 +5,7 @@
             [migratus.core :as migratus]
 
             [system.env :refer [env]]
-            [mquery])
+            [modules.mquery :as mquery])
   (:import (com.mchange.v2.c3p0 ComboPooledDataSource)))
 
 (defn connection-pool

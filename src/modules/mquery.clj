@@ -1,4 +1,4 @@
-(ns mquery
+(ns modules.mquery
   (:require [clojure.set :as set]
             [clojure.java.jdbc :as jdbc])
   (:import (java.sql DatabaseMetaData)))
