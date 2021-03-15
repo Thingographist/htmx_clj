@@ -47,7 +47,8 @@
       [:body.bg-white
        [:main content]
        [:script {:src (static-with-version "/js/mdb.min.js")}]
-       [:script {:src (static-with-version "/js/htmx.min.js")}]]))))
+       [:script {:src (static-with-version "/js/htmx.min.js")}]
+       [:script {:src (static-with-version "/js/hyperscript.min.js")}]]))))
 
 (defn- body [content]
   (let [{:keys [title js css]} (meta content)

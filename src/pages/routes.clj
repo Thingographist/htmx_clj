@@ -44,7 +44,7 @@
              :hx-swap     "outerHTML"
              :hx-trigger  "click from:button#send"}]
            "!"
-           [:button#send.btn.mx-5 "update"]]]]]]]]
+           [:button#send.btn.mx-5 {"_" "on click hide me"} "update"]]]]]]]]
     {:title "HTMX KIT HOME"}))
 
 (defmethod page :info [_]
