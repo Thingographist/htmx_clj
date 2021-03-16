@@ -105,12 +105,16 @@
      :root    (:from query)
      :query   query}))
 
-(defn exec [mquery references query-fn]
-  (let [decode (fn decode [{:keys [aliases result] :as res} alias-key]
-                 (let [{:keys [fields table sub-tables]} (get aliases alias-key)]
+(defn exec [mquery {:keys [references query-fn coercions]}]
+  (assert (fn? query-fn) "(:query-fn opts) must be fn")
+  (let [deep-coerce (partial merge-with (fn [field coerce-fn] (coerce-fn field)))
+        decode (fn decode [{:keys [aliases result] :as res} alias-key]
+                 (let [{:keys [fields table sub-tables]} (get aliases alias-key)
+                       table-coercions (get coercions table)]
                    {table (for [items (vals (group-by (apply juxt (keys fields)) result))
                                 :let [obj (-> (select-keys (first items) (keys fields))
-                                              (set/rename-keys fields))]]
+                                              (set/rename-keys fields)
+                                              (cond-> (map? table-coercions) (deep-coerce table-coercions)))]]
                             (into obj (map #(decode res %)) sub-tables))}))]
     (->> (for [[t q] mquery
                :let [{:keys [root query] :as res} (build-honey-sql t q references)

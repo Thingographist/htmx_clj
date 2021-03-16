@@ -62,13 +62,17 @@
 (defstate db-info :start (mquery/db-info db))
 
 (defn mquery [q]
-  (let [refs (mapcat :references db-info)]
-    (mquery/exec q refs query)))
+  (let [refs (mapcat :references db-info)
+        opts {:references refs
+              :query-fn   query
+              :coercions  {:migration_vers {:applied #(-> % (str) (subs 0 10))}}}]
+    (mquery/exec q opts)))
 
 (comment
 
   (let [mq {:migration_vers {:$fields [:id :applied]}}]
     (mquery mq))
+
 
   ;;
   )
