@@ -61,14 +61,37 @@
 
 (defstate db-info :start (mquery/db-info db))
 
+(defn table+fields []
+  (into {} (map (fn [[t {fs :fields}]] [t (map :column fs)])) db-info))
+
+(defn table+refs []
+  (let [->table-refs (fn [tab-refs-definition]
+                       (->> (for [[cn col-refs] (group-by :column_name tab-refs-definition)]
+                              [cn (map (juxt :referenced_table_name :referenced_column_name) col-refs)])
+                            (into {})))]
+    (->> (mapcat :references (vals db-info))
+         (group-by :table_name)
+         (into {} (map (fn [[t trd]] [t (->table-refs trd)]))))))
+
 (defn mquery [q]
-  (let [refs (mapcat :references db-info)
+  (let [refs (mapcat :references (vals db-info))
+        date->str #(-> % (str) (subs 0 10))
         opts {:references refs
               :query-fn   query
-              :coercions  {:migration_vers {:applied #(-> % (str) (subs 0 10))}}}]
+              :coercions  {:migration_vers {:applied date->str}
+                           :tasks          {:created_at date->str}}}]
     (mquery/exec q opts)))
 
 (comment
+
+  (table+refs)
+
+  (table+fields)
+
+  (let [mq {:contexts {:$fields [:id :context]
+                       :tasks   {:$fields [:task :created_at]
+                                 :!first? true}}}]
+    (mquery mq))
 
   (let [mq {:migration_vers {:$fields [:id :applied]}}]
     (mquery mq))

@@ -34,6 +34,9 @@
   (let [v-aliases (volatile! {})
         add-sub-table (fn [table sub-table]
                         (vswap! v-aliases update-in [(keyword table) :sub-tables] conj (keyword sub-table)))
+        v-postprocess (volatile! {})
+        add-post-process (fn [alias query]
+                           (vswap! v-postprocess assoc (keyword alias) (select-keys query [:!first? :!group-by :!order-by :!limit :!offset])))
         field-with-alias (fn [table-alias field-key]
                            (let [field-alias (keyword (str table-alias "__" (name field-key)))]
                              (vswap! v-aliases assoc-in [(keyword table-alias) :fields field-alias] field-key)
@@ -50,7 +53,7 @@
                           :from   [[t (keyword alias)]]}))
         remove-sys-keys #(dissoc %
                                  :$alias :$where :$fields :$left-join?
-                                 :!first? :!group-by :!limit)
+                                 :!first? :!group-by :!order-by :!limit :!offset)
         ->join-expr (fn [table alias sub-table sub-alias]
                       (->> (for [{:keys [table_name column_name referenced_table_name referenced_column_name]} references
                                  :when (and
@@ -68,6 +71,7 @@
                           {:main-table table
                            :sub-table  sub-table}))))
         compile-subquery (fn compile-subquery [table alias q]
+                           (add-post-process alias q)
                            (for [[t sq] (remove-sys-keys q)]
                              (if (map? sq)
                                ;; complex
@@ -96,26 +100,48 @@
                                      {:select (vec (map #(field-with-alias alias %) $fields))
                                       :from   [[t (keyword alias)]]}
                                      (when $where {:where $where}))]
+                          (add-post-process alias q)
                           (apply merge-with (comp vec concat) query (compile-subquery t alias q))))
         query (doall
                (if (map? query)
                  (complex-query table query)
                  (simple-query table query)))]
-    {:aliases @v-aliases
-     :root    (:from query)
-     :query   query}))
+    {:aliases     @v-aliases
+     :postprocess @v-postprocess
+     :root        (:from query)
+     :query       query}))
 
 (defn exec [mquery {:keys [references query-fn coercions]}]
   (assert (fn? query-fn) "(:query-fn opts) must be fn")
   (let [deep-coerce (partial merge-with (fn [field coerce-fn] (coerce-fn field)))
-        decode (fn decode [{:keys [aliases result] :as res} alias-key]
+        apply-postprocess (fn [items {:keys [!first? !order-by !limit !offset]}]
+                            (cond->> items
+                              !order-by (sort-by (apply juxt !order-by))
+                              !offset (drop !offset)
+                              !limit (take !offset)
+                              !first? (first)))
+        decode (fn decode [{:keys [aliases postprocess result] :as res} alias-key]
                  (let [{:keys [fields table sub-tables]} (get aliases alias-key)
-                       table-coercions (get coercions table)]
-                   {table (for [items (vals (group-by (apply juxt (keys fields)) result))
-                                :let [obj (-> (select-keys (first items) (keys fields))
-                                              (set/rename-keys fields)
-                                              (cond-> (map? table-coercions) (deep-coerce table-coercions)))]]
-                            (into obj (map #(decode res %)) sub-tables))}))]
+                       {gb :!group-by :as post-process} (get postprocess alias-key)
+                       table-coercions (get coercions table)
+                       apply-postprocess* (fn [items]
+                                            (if (not gb)
+                                              (apply-postprocess items post-process)
+                                              (->> (group-by (apply juxt gb) items)
+                                                   (vals)
+                                                   (map #(apply-postprocess % post-process)))))
+                       items (for [items (vals (group-by (apply juxt (keys fields)) result))
+                                   :let [obj (-> (select-keys (first items) (keys fields))
+                                                 (set/rename-keys fields)
+                                                 (cond-> (map? table-coercions) (deep-coerce table-coercions)))]]
+                               (into obj (map #(decode res %)) sub-tables))]
+                   (cond-> items
+                     (seq post-process)
+                     (apply-postprocess*))
+
+                   {table (cond-> items 
+                            (seq post-process)
+                            (apply-postprocess*))}))]
     (->> (for [[t q] mquery
                :let [{:keys [root query] :as res} (build-honey-sql t q references)
                      root-k (second (first root))]]
@@ -127,9 +153,9 @@
 (comment
   
   {:table1 [:col1 :col2]
-   :table2 {:$alias  :t
-            :$where  [:= :id 1]
-            :$fields [:col1 :col2]
+   :table2 {:$alias   :t
+            :$where   [:= :id 1]
+            :$fields  [:col1 :col2]
             :subtable {:$fields   [:col1 :col2 :!count.col3]
                        :!first?   true
                        :!group-by [:id]
