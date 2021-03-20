@@ -47,7 +47,8 @@
         [:main content]
         [:script {:src (static-with-version "/js/mdb.min.js")}]
         [:script {:src (static-with-version "/js/htmx.min.js")}]
-        [:script {:src (static-with-version "/js/hyperscript.min.js")}]]
+        [:script {:src (static-with-version "/js/hyperscript.min.js")}]
+        [:script#scripts-bucket]]
        (for [path js]
          [:script {:src (static-with-version path)}]))))))
 
@@ -55,11 +56,14 @@
   (let [{:keys [title js css]} (meta content)
         full-content (cond-> (html content)
                        (string? title)
-                       (str (html [:title#hx-page-title {:hx-swap-oob "true"} title])))]
-    (htmx-trigger
-     (res/response full-content)
-     {:hx-add-resources {:js  (map static-with-version js)
-                         :css (map static-with-version css)}})))
+                       (str (html [:title#hx-page-title {:hx-swap-oob "true"} title]))
+                       (or (seq js) (seq css))
+                       (str (html [:script#scripts-bucket
+                                   {:hx-swap-oob "true"
+                                    :scripts     (json/generate-string
+                                                  {:js  (map static-with-version js)
+                                                   :css (map static-with-version css)})}])))]
+    (res/response full-content)))
 
 (defn htmx-response [handler]
   (let [->page-response (comp page handler)

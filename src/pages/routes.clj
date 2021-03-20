@@ -125,14 +125,14 @@
           (htmx/htmx-response 
            (fn [r]  (page (assoc r :page p))))])]
    ["api/" [["user" (fn [r] (htmx/hiccup-response [:b (-> r :params :username)]))]
-            ["chart" (fn [r]
-                       (-> (plotly [{:x [1, 2, 3, 4, 5]
-                                     :y (repeatedly 5 #(inc (rand-int 10)))}]
-                                   {:xaxis  {:fixedrange true}
-                                    :yaxis  {:fixedrange true}
-                                    :margin {:t 25
-                                             :b 25
-                                             :l 25
-                                             :r 25}})
-                           (htmx/hiccup-response {:eval-after-load? true})))]]]
+            ["chart" (fn [_]
+                       (htmx/hiccup-response
+                        (plotly [{:x [1, 2, 3, 4, 5]
+                                  :y (repeatedly 5 #(inc (rand-int 10)))}]
+                                {:xaxis  {:fixedrange true}
+                                 :yaxis  {:fixedrange true}
+                                 :margin {:t 25
+                                          :b 25
+                                          :l 25
+                                          :r 25}})))]]]
    ["ws/user" (fn [r] (htmx/hiccup-response [:b (-> r :params :username)]))]])
