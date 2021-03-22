@@ -82,6 +82,11 @@
                            :tasks          {:created_at date->str}}}]
     (mquery/exec q opts)))
 
+(defn check-mquery [q]
+  (let [refs (mapcat :references (vals db-info))
+        opts {:references refs}]
+    (mquery/check-mquery q opts)))
+
 (comment
 
   (table+refs)

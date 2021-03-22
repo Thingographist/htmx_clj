@@ -55,13 +55,22 @@
                                  :$alias :$where :$fields :$left-join?
                                  :!first? :!group-by :!order-by :!limit :!offset)
         ->join-expr (fn [table alias sub-table sub-alias]
-                      (->> (for [{:keys [table_name column_name referenced_table_name referenced_column_name]} references
-                                 :when (and
-                                        (= table_name sub-table)
-                                        (= referenced_table_name table))]
-                             [:=
-                              (first (field-with-alias sub-alias column_name))
-                              (first (field-with-alias alias referenced_column_name))])
+                      (->> (for [{:keys [table_name column_name referenced_table_name referenced_column_name]} references]
+                             (cond
+                               (and
+                                (= table_name sub-table)
+                                (= referenced_table_name table))
+                               [:=
+                                (first (field-with-alias sub-alias column_name))
+                                (first (field-with-alias alias referenced_column_name))]
+
+                               (and
+                                (= table_name table)
+                                (= referenced_table_name sub-table))
+                               [:=
+                                (first (field-with-alias sub-alias referenced_column_name))
+                                (first (field-with-alias alias column_name))]))
+                           (filter identity)
                            (into [:and])))
         assert-join (fn [table sub-table join-expr]
                       (when (= [:and] join-expr)
@@ -78,14 +87,16 @@
                                (let [{:keys [$alias $fields $where $left-join?]} sq
                                      sub-alias (make-alias t $alias)
                                      join-key (if $left-join? :left-join :join)
-                                     join-expr (->join-expr table alias t sub-alias)]
+                                     join-expr (cond-> (->join-expr table alias t sub-alias)
+                                                 (some? $where)
+                                                 (into [$where]))]
                                  (add-sub-table alias sub-alias)
                                  (assert-join table t join-expr)
                                  (apply
                                   merge-with
                                   (comp vec concat)
                                   {:select  (map #(field-with-alias sub-alias %) $fields)
-                                   join-key (concat [[t (keyword sub-alias)]] [(into join-expr $where)])}
+                                   join-key (concat [[t (keyword sub-alias)]] [join-expr])}
                                   (compile-subquery t sub-alias sq)))
                                (let [{:keys [select from]} (simple-query t sq)
                                      [sub-table sub-alias] (first from)
@@ -130,16 +141,17 @@
                                               (->> (group-by (apply juxt gb) items)
                                                    (vals)
                                                    (map #(apply-postprocess % post-process)))))
-                       items (for [items (vals (group-by (apply juxt (keys fields)) result))
+                       obj->key (apply juxt (keys fields))
+                       obj->key+ (fn [o]
+                                   (for [v (obj->key o)]
+                                     (cond-> v (bytes? v) (seq))))
+                       items (for [items (vals (group-by obj->key+  result))
                                    :let [obj (-> (select-keys (first items) (keys fields))
                                                  (set/rename-keys fields)
-                                                 (cond-> (map? table-coercions) (deep-coerce table-coercions)))]]
-                               (into obj (map #(decode res %)) sub-tables))]
-                   (cond-> items
-                     (seq post-process)
-                     (apply-postprocess*))
-
-                   {table (cond-> items 
+                                                 (cond-> (map? table-coercions) (deep-coerce table-coercions)))
+                                         res+ (assoc res :result items)]]
+                               (into obj (map #(decode res+ %)) sub-tables))]
+                   {table (cond-> items
                             (seq post-process)
                             (apply-postprocess*))}))]
     (->> (for [[t q] mquery
@@ -150,8 +162,13 @@
          (into {}))))
 
 
+(defn check-mquery [mquery {:keys [references]}]
+  (->> (for [[t q] mquery]
+         [t (build-honey-sql t q references)])
+       (into {})))
+
 (comment
-  
+
   {:table1 [:col1 :col2]
    :table2 {:$alias   :t
             :$where   [:= :id 1]
