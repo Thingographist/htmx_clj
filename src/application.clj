@@ -10,13 +10,10 @@
     (-main)
     (catch Throwable e (Throwable->map e))))
 
-(comment
-
-  (do
-    (require '[clojure.tools.namespace.repl :as tn])
+(defn restart []
+  (require '[clojure.tools.namespace.repl :refer [set-refresh-dirs refresh-all]])
+  (let [set-refresh-dirs (ns-resolve 'clojure.tools.namespace.repl 'set-refresh-dirs)
+        refresh-all (ns-resolve 'clojure.tools.namespace.repl 'refresh-all)]
     (stop)
-    (tn/set-refresh-dirs "src" "repl")
-    (tn/refresh-all :after 'application/try-start))
-  
-  ;;
-  )
+    (set-refresh-dirs "src" "repl")
+    (refresh-all :after 'application/try-start)))
