@@ -1,5 +1,32 @@
 # Эксперименты с HTMX
 
+## запуск
+
+```
+make init_db
+```
+
+1. запускаем репл
+2. в `pages.routes` ребутим стейт 
+
+```clojure
+(do
+    (require 'application)
+    (application/restart))
+```
+
+3. применяем миграции
+```clojure
+(system.db/migrate)
+```
+4. еще раз ребутим стейт
+```clojure
+(do
+    (require 'application)
+    (application/restart))
+```
+
+
 ## План
 
 ### Чисто HTMX
@@ -42,14 +69,3 @@ WEB_PORT=4080
 STATIC_VERSION=1.1.1
 MYSQL=jdbc:mysql://localhost:3332/my_db?user=root&password=example&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
 ```
-
-## запуск
-
-```
-make init_db
-```
-
-1. запускаем репл
-1. через application подключаем стейт
-1. в user.db.migrations применяем миграции
-1. ребутим стейт
