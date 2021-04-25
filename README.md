@@ -1,5 +1,13 @@
 # Эксперименты с HTMX
 
+## базовый конфиг в .env
+
+```
+WEB_PORT=4080
+STATIC_VERSION=1.1.1
+MYSQL=jdbc:mysql://localhost:3332/my_db?user=root&password=example&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+```
+
 ## запуск
 
 ```
@@ -61,11 +69,3 @@ make init_db
 1. [x] ~~как организовать теплейты~~
 1. [x] ~~как строить rest~~
 1. [x] ~~валидация параметров и отображение проблем~~
-
-## базовый конфиг в .env
-
-```
-WEB_PORT=4080
-STATIC_VERSION=1.1.1
-MYSQL=jdbc:mysql://localhost:3332/my_db?user=root&password=example&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-```
