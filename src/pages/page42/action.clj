@@ -2,7 +2,7 @@
   (:require [modules.htmx :as htmx]
             [pages.pages :refer [action]]
             [pages.page42.state :refer [inject-state]]
-            [pages.page42.widgets :refer [plotly]]))
+            [modules.bootstrap :refer [plotly]]))
 
 (defn- page42 [req]
   (plotly [{:x [1, 2, 3, 4, 5]

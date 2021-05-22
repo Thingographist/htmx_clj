@@ -1,7 +1,7 @@
 (ns pages.page42.page
   (:require [pages.pages :refer [page menu]]
             [pages.page42.state :refer [inject-state]]
-            [pages.page42.widgets :refer [plotly]]))
+            [modules.bootstrap :refer [plotly]]))
 
 (defn- page42 [{ps :params}]
   (with-meta

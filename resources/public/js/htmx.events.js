@@ -1,11 +1,32 @@
 // HTMX EVAL LOAD
 let HTMX_RESOURCES = {};
 function hxEvalLoad() {
-    document.querySelectorAll('*[hx-load]').forEach(x => {
-        let code = x.getAttribute('hx-load');
-        x.removeAttribute('hx-load');
+    document.querySelectorAll('*[hx-load]').forEach($currentNode => {
+        let code = $currentNode.getAttribute('hx-load');
+        $currentNode.removeAttribute('hx-load');
         eval(code);
     });
+}
+
+function mountMDB(node) {
+    htmx.findAll(node, '.form-outline').forEach(x => (new mdb.Input(x)));
+}
+
+async function hsPost(url, json) {
+    const response = await fetch(url, {
+        method: 'POST',
+        body: json,
+        headers: {'Content-Type': 'application/json'}
+    });
+    const result = await response.json();
+    return result;
+}
+
+function hsAlert(body) {
+    const toastDiv = htmx.find('#errors-toast');
+    htmx.find(toastDiv, '.toast-body').innerHTML = body;
+    const inst = new mdb.Toast(toastDiv);
+    inst.show();
 }
 
 // HTMX RESOURCE LOADER

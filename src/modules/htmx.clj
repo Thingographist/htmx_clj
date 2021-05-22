@@ -1,17 +1,10 @@
 (ns modules.htmx
-  (:require [clojure.string :as string]
-
-            [ring.util.response :as res]
+  (:require [ring.util.response :as res]
             [cheshire.core :as json]
             [hiccup.page :refer [html5]]
             [hiccup.core :refer [html]]
 
             [system.env :refer [env]]))
-
-(defn hs [& notations]
-  (let [->str (fn [x] (cond-> x (keyword? x) (name)))]
-    (->> (for [xs notations] (string/join " " (map ->str xs)))
-         (string/join "\n"))))
 
 (defn hx-vals [vals-map]
   (json/generate-string vals-map))
@@ -69,6 +62,11 @@
                    :href (static-with-version path)}])))
        (into
         [:body
+         [:div.toast-container.position-fixed.p-3.top-0.start-50.translate-middle-x {:style "z-index:100"}
+          [:div#errors-toast.toast.fade.hide.border.border-warning.shadow
+           [:div.toast-header.text-warning
+            [:span.me-auto "Ошибочка"]]
+           [:div.toast-body]]]
          [:main content]
          [:script {:src (static-with-version "/js/mdb.min.js")}]
          [:script {:src (static-with-version "/js/htmx.min.js")}]

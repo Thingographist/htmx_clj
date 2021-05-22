@@ -1,5 +1,5 @@
 (ns pages.user.page
-  (:require [modules.htmx :as htmx]
+  (:require [modules.hyperscript :as hs]
             [pages.pages :refer [page menu]]
             [pages.user.state :refer [inject-state]]))
 
@@ -13,7 +13,7 @@
         [:div.card
          [:div.card-header "Интерактивный ввод"]
          [:div.card-body
-          [:h1 "hi "
+          [:h1 {:_ (hs/hs [:on "htmx:afterSwap" [:call "hsAlert('Оу. А ошибки то нет.')"]])} "hi "
            [:input.inline-input
             {:placeholder "username"
              :name        "username"
@@ -21,7 +21,7 @@
              :hx-swap     "outerHTML"
              :hx-trigger  "click from:button#send"}]
            "!"
-           [:button#send.btn.mx-5 {:_ (htmx/hs [:on :click :hide :me])} "update"]]]]]]]]
+           [:button#send.btn.mx-5 {:_ (hs/hs [:on :click :hide :me])} "update"]]]]]]]]
     {:title "HTMX KIT HOME"}))
 
 (defmethod page :user [req]
