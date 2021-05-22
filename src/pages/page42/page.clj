@@ -22,7 +22,7 @@
            [:div.col
             [:button#refresh.btn "refresh"]]]
           [:div.row
-           [:div.col {:hx-get     "/api/chart"
+           [:div.col {:hx-post     ""
                       :hx-swap    "innerHTML"
                       :hx-trigger "click from:button#refresh"}
             (plotly [{:x [1, 2, 3, 4, 5]

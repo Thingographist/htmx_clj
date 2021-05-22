@@ -12,14 +12,12 @@
   (comp action #(assoc-in % [:page :action-key] p)))
 
 (def routes
-  [["" (for [{:keys [href] :as p} pages]
+  [["" (for [{:keys [href page-key]} pages]
          [(if (string? href)
             (subs href 1)
             (update href 0 subs 1))
-          (htmx/htmx-response
-           (fn [r]  (page (assoc r :page p))))])]
-   ["api/" [["user" (action-route :user)]
-            ["chart" (action-route :page42)]]]])
+          {:get  (page-route page-key)
+           :post (action-route page-key)}])]])
 
 
 (comment

@@ -15,9 +15,9 @@
          [:div.card-body
           [:h1 {:_ (hs/hs [:on "htmx:afterSwap" [:call "hsAlert('Оу. А ошибки то нет.')"]])} "hi "
            [:input.inline-input
-            {:placeholder "username"
+            {:hx-post     ""
+             :placeholder "username"
              :name        "username"
-             :hx-post     "/api/user"
              :hx-swap     "outerHTML"
              :hx-trigger  "click from:button#send"}]
            "!"
