@@ -1,4 +1,4 @@
-{:paths   ["src" "resources"]
+{:paths   ["src" "resources" "classes"]
  :deps    {mount/mount                                     {:mvn/version "0.1.16"}
            http-kit/http-kit                               {:mvn/version "2.5.3"}
            ring/ring-core                                  {:mvn/version "1.9.1"}
@@ -23,6 +23,11 @@
                           :extra-deps    {org.clojure/tools.namespace {:mvn/version "1.1.0"}
                                           metasoarous/oz              {:mvn/version "1.6.0-alpha26"
                                                                        :exclusions  [org.clojure/tools.namespace]}}}
+           :aot          {:main-opts  ["-e" "(compile,'application)"]}
+           :uberjar      {:extra-deps {uberdeps/uberdeps {:mvn/version "1.0.4"}}
+                          :main-opts  ["-m" "uberdeps.uberjar"
+                                       "--target" "target/htmx.jar"
+                                       "--main-class" "application"]}
            :sass         {:extra-deps {deraen/sass4clj {:mvn/version "0.5.1"}}
                           :main-opts  ["-m" "sass4clj.main" "-s" "-a" "--source-paths" "sass" "-t" "resources/public/css"]}
            :sass-release {:extra-deps {deraen/sass4clj {:mvn/version "0.5.1"}}

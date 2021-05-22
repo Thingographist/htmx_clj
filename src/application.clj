@@ -1,13 +1,13 @@
 (ns application
+  (:gen-class)
   (:require [mount.core :refer [start stop]]
-            system.db))
-
-(defn -main [& _]
-  (start))
+            [system.env]
+            [system.db :as db]
+            [system.server]))
 
 (defn try-start []
   (try
-    (-main)
+    (start)
     (catch Throwable e (Throwable->map e))))
 
 (defn restart []
@@ -17,3 +17,8 @@
     (stop)
     (set-refresh-dirs "src" "repl")
     (refresh-all :after 'application/try-start)))
+
+(defn -main [& _]
+  (start #'system.env/extended-env #'system.db/db)
+  (db/migrate)
+  (start))

@@ -6,3 +6,5 @@
 .lsp
 data
 resources/public/css/global*
+classes
+target

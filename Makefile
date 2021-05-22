@@ -19,3 +19,10 @@ load:
 
 sass:
 	clojure -M:sass
+
+build:
+	rm -rf target classes .cpcache
+	mkdir classes
+	clojure -M:aot
+	clojure -M:uberjar
+	rm -rf classes
