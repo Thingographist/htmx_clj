@@ -6,6 +6,7 @@
 WEB_PORT=4080
 STATIC_VERSION=1.1.1
 MYSQL=jdbc:mysql://localhost:3332/my_db?user=root&password=example&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+MONGO_DB=mongodb://root:example@localhost/admin?maxPoolSize=128&waitQueueMultiple=5;waitQueueTimeoutMS=150;socketTimeoutMS=5500&autoConnectRetry=true;safe=false&w=1;wtimeout=2500;fsync=true
 ```
 
 ## запуск
