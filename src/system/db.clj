@@ -25,6 +25,7 @@
                  (.setPreferredTestQuery nil))})
 
 (defn init-db! []
+  ;; {:class "org.sqlite.JDBC" :connection-uri (env :SQLITE)}
   (-> {:classname "com.mysql.cj.jdbc.Driver" :connection-uri (env :MYSQL)}
       (connection-pool)))
 
